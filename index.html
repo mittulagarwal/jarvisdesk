@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JarvisDesk — Mittul Agarwal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #050507;
+    --deep: #0a0a0f;
+    --card: #0f0f18;
+    --border: #1e1e2e;
+    --gold: #f5c842;
+    --gold2: #e8a800;
+    --lime: #b8ff57;
+    --cyan: #00e5ff;
+    --white: #f0efe8;
+    --muted: #6b6b7a;
+    --syne: 'Syne', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--syne);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  #cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--gold); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: difference;
+  }
+  #cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid rgba(245,200,66,0.4); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease;
+  }
+  body:hover #cursor { opacity: 1; }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; opacity: 0.5;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 4rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    background: rgba(5,5,7,0.7);
+  }
+  .nav-logo {
+    font-family: var(--syne); font-weight: 800; font-size: 1.2rem;
+    letter-spacing: -0.02em; color: var(--white);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-dot {
+    width: 8px; height: 8px; background: var(--lime);
+    border-radius: 50%; animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(184,255,87,0.6); }
+    50% { box-shadow: 0 0 0 8px rgba(184,255,87,0); }
+  }
+  .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+  .nav-links a {
+    font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+    font-family: var(--mono);
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--gold); color: var(--black) !important;
+    padding: 0.5rem 1.2rem; border-radius: 4px;
+    font-weight: 600 !important; letter-spacing: 0.06em !important;
+    transition: background 0.2s, transform 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--lime) !important; transform: scale(1.04) !important; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; padding: 8rem 4rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-grid-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(245,200,66,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,200,66,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  }
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(245,200,66,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%, -60%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: var(--mono); font-size: 0.72rem; color: var(--gold);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 2rem;
+    opacity: 0; animation: fadeUp 0.6s 0.2s forwards;
+  }
+  .hero-tag::before { content: ''; width: 32px; height: 1px; background: var(--gold); }
+  .hero-h1 {
+    font-size: clamp(3.5rem, 8vw, 7rem); font-weight: 800;
+    line-height: 0.95; letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: fadeUp 0.7s 0.35s forwards;
+  }
+  .hero-h1 em { font-family: var(--serif); font-style: italic; color: var(--gold); }
+  .hero-h1 .line2 { display: block; color: var(--muted); }
+  .hero-sub {
+    font-family: var(--mono); font-size: 0.95rem; color: var(--muted);
+    max-width: 520px; line-height: 1.7; margin-bottom: 3rem;
+    opacity: 0; animation: fadeUp 0.7s 0.5s forwards;
+  }
+  .hero-sub strong { color: var(--lime); font-weight: 500; }
+  .hero-actions {
+    display: flex; gap: 1rem; align-items: center;
+    opacity: 0; animation: fadeUp 0.7s 0.65s forwards;
+  }
+  .btn-primary {
+    background: var(--gold); color: var(--black);
+    padding: 1rem 2.4rem; border: none; border-radius: 4px;
+    font-family: var(--syne); font-weight: 700; font-size: 0.9rem;
+    letter-spacing: 0.04em; cursor: none;
+    transition: all 0.25s; text-decoration: none; display: inline-block;
+  }
+  .btn-primary:hover { background: var(--lime); transform: translateY(-2px); }
+  .btn-ghost {
+    border: 1px solid var(--border); color: var(--white);
+    padding: 1rem 2rem; border-radius: 4px;
+    font-family: var(--mono); font-size: 0.82rem; cursor: none;
+    transition: all 0.25s; text-decoration: none; display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+  .hero-stats {
+    position: absolute; right: 4rem; bottom: 4rem;
+    display: flex; flex-direction: column; gap: 1.5rem; text-align: right;
+    opacity: 0; animation: fadeUp 0.7s 0.8s forwards;
+  }
+  .stat-num {
+    font-size: 2.8rem; font-weight: 800; line-height: 1;
+    color: var(--white);
+  }
+  .stat-num span { color: var(--gold); }
+  .stat-label { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .scroll-hint {
+    position: absolute; bottom: 2rem; left: 4rem;
+    font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0; animation: fadeUp 0.7s 1s forwards;
+  }
+  .scroll-line { width: 40px; height: 1px; background: var(--muted); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* TRUST BAR */
+  .trust-bar {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem 4rem;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--deep);
+    overflow: hidden;
+  }
+  .trust-item {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 0.72rem;
+    color: var(--muted); letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .trust-item i { color: var(--gold); font-size: 1rem; }
+  .trust-sep { width: 1px; height: 24px; background: var(--border); }
+
+  /* SECTIONS */
+  section { padding: 7rem 4rem; position: relative; }
+  .section-tag {
+    font-family: var(--mono); font-size: 0.68rem; color: var(--gold);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem;
+  }
+  .section-tag::before { content: ''; width: 20px; height: 1px; background: var(--gold); }
+  .section-h2 {
+    font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800;
+    letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 1rem;
+  }
+  .section-h2 em { font-family: var(--serif); font-style: italic; color: var(--gold); }
+
+  /* SERVICES */
+  .services { background: var(--deep); }
+  .services-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; margin-top: 4rem;
+  }
+  .service-card {
+    background: var(--card); padding: 2.5rem;
+    transition: background 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .service-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(245,200,66,0.04) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .service-card:hover { background: #131320; }
+  .service-card:hover::after { opacity: 1; }
+  .service-num {
+    font-family: var(--mono); font-size: 0.65rem; color: var(--gold);
+    letter-spacing: 0.15em; margin-bottom: 1.5rem;
+  }
+  .service-icon {
+    font-size: 2rem; margin-bottom: 1.2rem;
+    filter: grayscale(0.3);
+  }
+  .service-title {
+    font-size: 1.15rem; font-weight: 700; margin-bottom: 0.8rem;
+    letter-spacing: -0.01em;
+  }
+  .service-desc {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+    line-height: 1.7;
+  }
+  .service-tech {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.5rem;
+  }
+  .tech-tag {
+    font-family: var(--mono); font-size: 0.62rem;
+    border: 1px solid var(--border); color: var(--muted);
+    padding: 3px 9px; border-radius: 3px; letter-spacing: 0.05em;
+  }
+
+  /* PROJECTS */
+  .projects-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 2rem; margin-top: 4rem;
+  }
+  .project-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 2.5rem;
+    transition: all 0.3s; position: relative; overflow: hidden;
+    cursor: none;
+  }
+  .project-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--gold);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .project-card:hover { border-color: rgba(245,200,66,0.3); transform: translateY(-4px); }
+  .project-card:hover::before { transform: scaleX(1); }
+  .project-card.featured {
+    grid-column: span 2;
+    background: linear-gradient(135deg, #0f0f18 0%, #131325 100%);
+    border-color: rgba(245,200,66,0.2);
+  }
+  .project-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 3px;
+    margin-bottom: 1.5rem;
+  }
+  .badge-gold { background: rgba(245,200,66,0.12); color: var(--gold); border: 1px solid rgba(245,200,66,0.25); }
+  .badge-lime { background: rgba(184,255,87,0.1); color: var(--lime); border: 1px solid rgba(184,255,87,0.2); }
+  .badge-cyan { background: rgba(0,229,255,0.08); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+  .badge-muted { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
+  .project-title {
+    font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+    margin-bottom: 0.6rem;
+  }
+  .project-sub {
+    font-family: var(--serif); font-style: italic;
+    color: var(--gold); font-size: 1rem; margin-bottom: 1rem;
+  }
+  .project-desc {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+    line-height: 1.75; margin-bottom: 1.5rem;
+  }
+  .project-stats {
+    display: flex; gap: 2rem; flex-wrap: wrap;
+    padding-top: 1.5rem; border-top: 1px solid var(--border);
+  }
+  .p-stat-num {
+    font-size: 1.4rem; font-weight: 800; color: var(--white);
+  }
+  .p-stat-num span { color: var(--gold); }
+  .p-stat-label { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.08em; }
+
+  /* SKILLS TICKER */
+  .skills-section { background: var(--deep); padding: 5rem 0; overflow: hidden; }
+  .ticker-label {
+    text-align: center; margin-bottom: 3rem;
+    font-family: var(--mono); font-size: 0.68rem;
+    color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .ticker-wrap { overflow: hidden; position: relative; }
+  .ticker-wrap::before, .ticker-wrap::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 100px; z-index: 2;
+  }
+  .ticker-wrap::before { left: 0; background: linear-gradient(90deg, var(--deep), transparent); }
+  .ticker-wrap::after { right: 0; background: linear-gradient(-90deg, var(--deep), transparent); }
+  .ticker {
+    display: flex; gap: 0; width: max-content;
+    animation: scroll 28s linear infinite;
+  }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0.8rem 2.4rem;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--muted);
+    border-right: 1px solid var(--border); white-space: nowrap;
+    transition: color 0.2s;
+  }
+  .ticker-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+  /* GUARANTEE SECTION */
+  .guarantee {
+    background: var(--black);
+    position: relative; overflow: hidden;
+  }
+  .guarantee-inner {
+    background: linear-gradient(135deg, #0f0f18 0%, #131328 100%);
+    border: 1px solid rgba(245,200,66,0.25);
+    border-radius: 12px; padding: 5rem;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .guarantee-inner::before {
+    content: '101%';
+    position: absolute; font-size: 20rem; font-weight: 800;
+    color: rgba(245,200,66,0.03); right: -4rem; top: 50%;
+    transform: translateY(-50%); line-height: 1;
+    letter-spacing: -0.05em; pointer-events: none;
+    font-family: var(--syne);
+  }
+  .guarantee-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(184,255,87,0.1); border: 1px solid rgba(184,255,87,0.3);
+    color: var(--lime); border-radius: 100px;
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em;
+    padding: 6px 16px; margin-bottom: 2.5rem; text-transform: uppercase;
+  }
+  .guarantee-h2 {
+    font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 800;
+    letter-spacing: -0.03em; line-height: 1.0; margin-bottom: 1.5rem;
+  }
+  .guarantee-h2 em { color: var(--gold); font-family: var(--serif); font-style: italic; }
+  .guarantee-text {
+    font-family: var(--mono); font-size: 0.88rem; color: var(--muted);
+    max-width: 580px; margin: 0 auto 3rem; line-height: 1.8;
+  }
+  .guarantee-text strong { color: var(--white); font-weight: 500; }
+  .promise-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; margin-top: 3rem; text-align: left;
+  }
+  .promise-item {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem;
+  }
+  .promise-check {
+    width: 28px; height: 28px; background: rgba(184,255,87,0.12);
+    border: 1px solid rgba(184,255,87,0.3); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: var(--lime); margin-bottom: 0.8rem;
+  }
+  .promise-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .promise-desc { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); line-height: 1.6; }
+
+  /* ABOUT */
+  .about-inner {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6rem; align-items: center;
+  }
+  .about-visual {
+    position: relative;
+  }
+  .about-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 2rem;
+  }
+  .about-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; font-weight: 800; color: var(--black);
+    margin-bottom: 1.2rem; font-family: var(--syne);
+  }
+  .about-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.2rem; }
+  .about-role { font-family: var(--mono); font-size: 0.72rem; color: var(--gold); letter-spacing: 0.08em; margin-bottom: 1.5rem; }
+  .about-skills-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .skill-row { display: flex; align-items: center; justify-content: space-between; }
+  .skill-name { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+  .skill-bar { flex: 1; height: 2px; background: var(--border); margin: 0 1rem; border-radius: 2px; }
+  .skill-fill { height: 100%; background: var(--gold); border-radius: 2px; }
+  .skill-pct { font-family: var(--mono); font-size: 0.65rem; color: var(--gold); }
+  .about-floating {
+    position: absolute; right: -2rem; top: -2rem;
+    background: var(--card); border: 1px solid rgba(184,255,87,0.25);
+    border-radius: 8px; padding: 1rem 1.5rem;
+  }
+  .floating-num { font-size: 1.8rem; font-weight: 800; color: var(--lime); }
+  .floating-label { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); }
+  .about-text {
+    font-family: var(--mono); font-size: 0.85rem; color: var(--muted);
+    line-height: 1.8; margin-bottom: 1.5rem;
+  }
+  .about-text strong { color: var(--white); font-weight: 500; }
+
+  /* CONTACT */
+  .contact { background: var(--deep); }
+  .contact-inner {
+    display: grid; grid-template-columns: 1.2fr 1fr;
+    gap: 6rem; align-items: start;
+  }
+  .contact-h2 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 1.2rem; }
+  .contact-h2 em { font-family: var(--serif); font-style: italic; color: var(--gold); }
+  .contact-sub { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); line-height: 1.7; margin-bottom: 3rem; }
+  .contact-links { display: flex; flex-direction: column; gap: 1rem; }
+  .contact-link {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1rem 1.4rem;
+    text-decoration: none; color: var(--white);
+    transition: all 0.25s; cursor: none;
+  }
+  .contact-link:hover { border-color: var(--gold); transform: translateX(6px); }
+  .contact-link-icon { font-size: 1.2rem; }
+  .contact-link-label { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+  .contact-link-value { font-size: 0.88rem; font-weight: 600; }
+  .contact-arrow { margin-left: auto; color: var(--gold); font-size: 1rem; }
+  .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+  .form-input, .form-textarea {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.9rem 1.1rem;
+    color: var(--white); font-family: var(--mono); font-size: 0.82rem;
+    outline: none; transition: border-color 0.2s; resize: none;
+    cursor: none;
+  }
+  .form-input:focus, .form-textarea:focus { border-color: var(--gold); }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--muted); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border); padding: 2rem 4rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-logo { font-weight: 800; font-size: 1rem; letter-spacing: -0.02em; }
+  .footer-logo span { color: var(--gold); }
+  .footer-note { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); }
+  .footer-note strong { color: var(--lime); }
+
+  /* SECTION REVEAL */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s, transform 0.7s; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) {
+    nav { padding: 1.2rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 6rem 1.5rem 3rem; }
+    .hero-stats { position: static; flex-direction: row; margin-top: 3rem; }
+    .services-grid { grid-template-columns: 1fr; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .project-card.featured { grid-column: span 1; }
+    .promise-grid { grid-template-columns: 1fr; }
+    .about-inner, .contact-inner { grid-template-columns: 1fr; }
+    .guarantee-inner { padding: 3rem 1.5rem; }
+    .about-floating { display: none; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+    .trust-bar { flex-wrap: wrap; gap: 1rem; padding: 1rem 1.5rem; }
+    .trust-sep { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Jarvis<span>Desk</span> <div class="nav-dot"></div></div>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#projects">Projects</a>
+    <a href="#about">About</a>
+    <a href="#contact" class="nav-cta">Hire Me</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-tag">Available for work &nbsp;·&nbsp; Results guaranteed</div>
+
+  <h1 class="hero-h1">
+    I don't just<br/>
+    <em>build things.</em>
+    <span class="line2">I deliver results.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Data analyst, AI engineer &amp; automation architect. From <strong>Power BI dashboards</strong> to <strong>Jarvis-style AI assistants</strong> — every project ships with a promise: <strong>101% output, zero excuses.</strong>
+  </p>
+
+  <div class="hero-actions">
+    <a href="#projects" class="btn-primary">See My Work ↓</a>
+    <a href="#contact" class="btn-ghost">Let's Talk →</a>
+  </div>
+
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">101<span>%</span></div>
+      <div class="stat-label">Results guaranteed</div>
+    </div>
+    <div>
+      <div class="stat-num">4<span>+</span></div>
+      <div class="stat-label">Projects shipped</div>
+    </div>
+    <div>
+      <div class="stat-num">0</div>
+      <div class="stat-label">Missed deadlines</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint"><div class="scroll-line"></div> scroll to explore</div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item">✦ Python · Pandas · NumPy · PyTorch</div>
+  <div class="trust-sep"></div>
+  <div class="trust-item">✦ Power BI · DAX · Excel · Power Query</div>
+  <div class="trust-sep"></div>
+  <div class="trust-item">✦ SQL · Git · APIs · Automation</div>
+  <div class="trust-sep"></div>
+  <div class="trust-item">✦ AI Tools · NLP · Computer Vision basics</div>
+  <div class="trust-sep"></div>
+  <div class="trust-item">✦ Flask · HTML · CSS · JavaScript</div>
+</div>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="reveal">
+    <div class="section-tag">What I do</div>
+    <h2 class="section-h2">Six things. All done <em>right.</em></h2>
+  </div>
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <div class="service-num">01 —</div>
+      <div class="service-icon">📊</div>
+      <div class="service-title">Business Dashboards</div>
+      <p class="service-desc">KPI dashboards, MIS reports, sales trackers — built to be understood at a glance. Live data, clean design, zero bloat.</p>
+      <div class="service-tech">
+        <span class="tech-tag">Power BI</span>
+        <span class="tech-tag">Excel</span>
+        <span class="tech-tag">DAX</span>
+        <span class="tech-tag">Power Query</span>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02 —</div>
+      <div class="service-icon">🤖</div>
+      <div class="service-title">AI Assistants & Bots</div>
+      <p class="service-desc">Custom AI tools for your workflow — like Jarvis for your business. Voice commands, smart automation, task handling.</p>
+      <div class="service-tech">
+        <span class="tech-tag">Python</span>
+        <span class="tech-tag">APIs</span>
+        <span class="tech-tag">NLP</span>
+        <span class="tech-tag">Automation</span>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03 —</div>
+      <div class="service-icon">⚡</div>
+      <div class="service-title">Excel Automation</div>
+      <p class="service-desc">Turn hours of manual work into one click. Macros, Power Query pipelines, automated reports that run themselves.</p>
+      <div class="service-tech">
+        <span class="tech-tag">VBA</span>
+        <span class="tech-tag">Macros</span>
+        <span class="tech-tag">Power Query</span>
+        <span class="tech-tag">Pivot</span>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">04 —</div>
+      <div class="service-icon">📈</div>
+      <div class="service-title">Data Analysis & Reports</div>
+      <p class="service-desc">Dig into your raw data and surface what matters. Forecasting, trend analysis, pattern detection — in Python or Excel.</p>
+      <div class="service-tech">
+        <span class="tech-tag">Pandas</span>
+        <span class="tech-tag">Matplotlib</span>
+        <span class="tech-tag">SciPy</span>
+        <span class="tech-tag">SQL</span>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">05 —</div>
+      <div class="service-icon">🌐</div>
+      <div class="service-title">Websites & Web Tools</div>
+      <p class="service-desc">Clean, fast business websites and internal web tools. Portfolio sites, product pages, data-driven web dashboards.</p>
+      <div class="service-tech">
+        <span class="tech-tag">HTML/CSS</span>
+        <span class="tech-tag">JavaScript</span>
+        <span class="tech-tag">Flask</span>
+        <span class="tech-tag">Python</span>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">06 —</div>
+      <div class="service-icon">🎯</div>
+      <div class="service-title">Presentation Design</div>
+      <p class="service-desc">Pitch decks and reports that look like a ₹10L consultancy made them — at a fraction of the cost. AI-assisted, fast delivery.</p>
+      <div class="service-tech">
+        <span class="tech-tag">PowerPoint</span>
+        <span class="tech-tag">AI-assisted</span>
+        <span class="tech-tag">Data viz</span>
+        <span class="tech-tag">Storytelling</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" style="background: var(--black);">
+  <div class="reveal">
+    <div class="section-tag">Portfolio</div>
+    <h2 class="section-h2">Real projects. <em>Real results.</em></h2>
+  </div>
+  <div class="projects-grid">
+
+    <!-- Featured: Jarvis -->
+    <div class="project-card featured reveal">
+      <div class="project-badge badge-gold">✦ FEATURED PROJECT</div>
+      <div class="project-title">Jarvis AI Desktop Assistant</div>
+      <div class="project-sub">Personal AI productivity engine — built from scratch</div>
+      <p class="project-desc">
+        A fully voice-activated AI assistant built in Python — inspired by Iron Man's JARVIS. Handles system commands, web search, schedule management, file operations, and real-time Q&A. Integrates multiple APIs and runs entirely offline for private tasks. This isn't a tutorial project — it's a working daily tool I use myself.
+      </p>
+      <div class="project-stats">
+        <div><div class="p-stat-num">Python</div><div class="p-stat-label">Core language</div></div>
+        <div><div class="p-stat-num">10<span>+</span></div><div class="p-stat-label">API integrations</div></div>
+        <div><div class="p-stat-num">Voice</div><div class="p-stat-label">Activated</div></div>
+        <div><div class="p-stat-num">100<span>%</span></div><div class="p-stat-label">Custom built</div></div>
+      </div>
+    </div>
+
+    <!-- UPI Pipeline -->
+    <div class="project-card reveal">
+      <div class="project-badge badge-cyan">📊 DATA ENGINEERING</div>
+      <div class="project-title">UPI Transaction Intelligence</div>
+      <div class="project-sub">48 months of NPCI data, fully analysed</div>
+      <p class="project-desc">End-to-end Python pipeline processing 48 months of national UPI transaction data. Trend detection, anomaly flagging, growth forecasting, and a Power BI dashboard for visual storytelling.</p>
+      <div class="project-stats">
+        <div><div class="p-stat-num">48<span>mo</span></div><div class="p-stat-label">Data span</div></div>
+        <div><div class="p-stat-num">NPCI</div><div class="p-stat-label">Real data source</div></div>
+      </div>
+    </div>
+
+    <!-- AI Trading Companion -->
+    <div class="project-card reveal">
+      <div class="project-badge badge-lime">🤖 AI TOOL</div>
+      <div class="project-title">AI Trading Companion</div>
+      <div class="project-sub">Smart market assistant with real-time signals</div>
+      <p class="project-desc">Python-powered trading research assistant — fetches live market data, analyses price patterns, generates buy/sell signals, and explains reasoning in plain English. Built for traders who want data, not noise.</p>
+      <div class="project-stats">
+        <div><div class="p-stat-num">Live</div><div class="p-stat-label">Market data</div></div>
+        <div><div class="p-stat-num">AI</div><div class="p-stat-label">Signal engine</div></div>
+      </div>
+    </div>
+
+    <!-- Superstore -->
+    <div class="project-card reveal">
+      <div class="project-badge badge-muted">📉 BUSINESS ANALYTICS</div>
+      <div class="project-title">Superstore Sales Analysis</div>
+      <div class="project-sub">Hidden loss uncovered — category by category</div>
+      <p class="project-desc">Deep-dive Python + Power BI analysis of retail sales data. Uncovered a hidden loss-making category that appeared profitable on surface metrics. Exactly the insight a real business pays analysts for.</p>
+      <div class="project-stats">
+        <div><div class="p-stat-num">Hidden</div><div class="p-stat-label">Loss found</div></div>
+        <div><div class="p-stat-num">Power BI</div><div class="p-stat-label">Dashboard</div></div>
+      </div>
+    </div>
+
+    <!-- E-Commerce Dashboard -->
+    <div class="project-card reveal">
+      <div class="project-badge badge-gold">📊 DASHBOARD</div>
+      <div class="project-title">E-Commerce Sales Dashboard</div>
+      <div class="project-sub">Full BI dashboard — live-ready</div>
+      <p class="project-desc">Interactive Power BI dashboard for e-commerce performance tracking. Revenue trends, product-level margins, geographic performance, customer cohorts — all in one view with drill-through filters.</p>
+      <div class="project-stats">
+        <div><div class="p-stat-num">Power BI</div><div class="p-stat-label">Platform</div></div>
+        <div><div class="p-stat-num">DAX</div><div class="p-stat-label">Custom measures</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SKILLS TICKER -->
+<div class="skills-section">
+  <div class="ticker-label">Tech stack I work with daily</div>
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <div class="ticker-item"><span class="dot"></span>Python</div>
+      <div class="ticker-item"><span class="dot"></span>Power BI</div>
+      <div class="ticker-item"><span class="dot"></span>DAX</div>
+      <div class="ticker-item"><span class="dot"></span>Pandas</div>
+      <div class="ticker-item"><span class="dot"></span>NumPy</div>
+      <div class="ticker-item"><span class="dot"></span>PyTorch</div>
+      <div class="ticker-item"><span class="dot"></span>SQL</div>
+      <div class="ticker-item"><span class="dot"></span>Excel</div>
+      <div class="ticker-item"><span class="dot"></span>Power Query</div>
+      <div class="ticker-item"><span class="dot"></span>Seaborn</div>
+      <div class="ticker-item"><span class="dot"></span>Matplotlib</div>
+      <div class="ticker-item"><span class="dot"></span>Git</div>
+      <div class="ticker-item"><span class="dot"></span>Flask</div>
+      <div class="ticker-item"><span class="dot"></span>HTML/CSS</div>
+      <div class="ticker-item"><span class="dot"></span>JavaScript</div>
+      <div class="ticker-item"><span class="dot"></span>GitHub</div>
+      <div class="ticker-item"><span class="dot"></span>SciPy</div>
+      <div class="ticker-item"><span class="dot"></span>APIs</div>
+      <!-- duplicate for seamless loop -->
+      <div class="ticker-item"><span class="dot"></span>Python</div>
+      <div class="ticker-item"><span class="dot"></span>Power BI</div>
+      <div class="ticker-item"><span class="dot"></span>DAX</div>
+      <div class="ticker-item"><span class="dot"></span>Pandas</div>
+      <div class="ticker-item"><span class="dot"></span>NumPy</div>
+      <div class="ticker-item"><span class="dot"></span>PyTorch</div>
+      <div class="ticker-item"><span class="dot"></span>SQL</div>
+      <div class="ticker-item"><span class="dot"></span>Excel</div>
+      <div class="ticker-item"><span class="dot"></span>Power Query</div>
+      <div class="ticker-item"><span class="dot"></span>Seaborn</div>
+      <div class="ticker-item"><span class="dot"></span>Matplotlib</div>
+      <div class="ticker-item"><span class="dot"></span>Git</div>
+      <div class="ticker-item"><span class="dot"></span>Flask</div>
+      <div class="ticker-item"><span class="dot"></span>HTML/CSS</div>
+      <div class="ticker-item"><span class="dot"></span>JavaScript</div>
+      <div class="ticker-item"><span class="dot"></span>GitHub</div>
+      <div class="ticker-item"><span class="dot"></span>SciPy</div>
+      <div class="ticker-item"><span class="dot"></span>APIs</div>
+    </div>
+  </div>
+</div>
+
+<!-- GUARANTEE -->
+<section class="guarantee" id="guarantee">
+  <div class="guarantee-inner reveal">
+    <div class="guarantee-badge">🛡 My Promise to Every Client</div>
+    <h2 class="guarantee-h2">Results aren't optional.<br/>They're <em>guaranteed.</em></h2>
+    <p class="guarantee-text">
+      When you hand a project to JarvisDesk, you're not hiring hope — you're buying certainty.
+      <strong>100% delivery. 0 ghost jobs. Zero vague timelines.</strong>
+      Every project gets the same commitment: clear scope, honest updates, and output that does exactly what we agreed — or I fix it, no questions asked.
+    </p>
+    <a href="#contact" class="btn-primary">Start a Project →</a>
+    <div class="promise-grid">
+      <div class="promise-item">
+        <div class="promise-check">✓</div>
+        <div class="promise-title">On-time delivery</div>
+        <p class="promise-desc">Deadlines are commitments. You'll get a clear timeline upfront and regular updates — no radio silence.</p>
+      </div>
+      <div class="promise-item">
+        <div class="promise-check">✓</div>
+        <div class="promise-title">Revisions included</div>
+        <p class="promise-desc">Not satisfied? I revise until it's right. The goal is your satisfaction, not just "submitted."</p>
+      </div>
+      <div class="promise-item">
+        <div class="promise-check">✓</div>
+        <div class="promise-title">Clear communication</div>
+        <p class="promise-desc">You'll always know where your project stands. WhatsApp, email — I respond fast, always.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" style="background: var(--black);">
+  <div class="about-inner">
+    <div class="about-visual reveal">
+      <div class="about-card">
+        <div class="about-avatar">MA</div>
+        <div class="about-name">Mittul Agarwal</div>
+        <div class="about-role">Data Analyst · AI Engineer · Automation Architect</div>
+        <div class="about-skills-list">
+          <div class="skill-row">
+            <span class="skill-name">Python / Pandas</span>
+            <div class="skill-bar"><div class="skill-fill" style="width:92%"></div></div>
+            <span class="skill-pct">92%</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-name">Power BI / DAX</span>
+            <div class="skill-bar"><div class="skill-fill" style="width:88%"></div></div>
+            <span class="skill-pct">88%</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-name">Excel Automation</span>
+            <div class="skill-bar"><div class="skill-fill" style="width:95%"></div></div>
+            <span class="skill-pct">95%</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-name">AI / ML (PyTorch)</span>
+            <div class="skill-bar"><div class="skill-fill" style="width:74%"></div></div>
+            <span class="skill-pct">74%</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-name">Web Development</span>
+            <div class="skill-bar"><div class="skill-fill" style="width:80%"></div></div>
+            <span class="skill-pct">80%</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-name">SQL & Databases</span>
+            <div class="skill-bar"><div class="skill-fill" style="width:85%"></div></div>
+            <span class="skill-pct">85%</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-floating">
+        <div class="floating-num">BCA</div>
+        <div class="floating-label">8.27 CGPA · UEM Jaipur</div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="section-tag">About</div>
+      <h2 class="section-h2">Self-taught.<br/><em>Battle-tested.</em></h2>
+      <p class="about-text">
+        I'm Mittul — a self-taught data analyst and AI builder based in Rajasthan. I've built MIS dashboards for a diagnostic lab chain, run the full P&amp;L of my own business using demand forecasting models, and shipped AI tools that people actually use daily.
+      </p>
+      <p class="about-text">
+        <strong>I didn't follow a traditional path.</strong> I learned by building real things — not toy tutorials. That means when your project arrives, I know exactly what it takes to ship something that works in the real world.
+      </p>
+      <p class="about-text">
+        Currently pursuing an <strong>MBA in Business Analytics</strong> alongside freelancing. I use AI tools (Claude, Copilot) every day as force multipliers — so your project gets the best of human judgment <em>and</em> machine speed.
+      </p>
+      <a href="#contact" class="btn-primary" style="margin-top:1rem">Work with me →</a>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <div class="reveal">
+      <div class="section-tag">Contact</div>
+      <h2 class="contact-h2">Let's build<br/>something <em>great.</em></h2>
+      <p class="contact-sub">Got a project? A dashboard you need? An idea you want built? Drop a message — I reply within a few hours. No gatekeeping, no lengthy intake forms.</p>
+      <div class="contact-links">
+        <a href="mailto:mittul@jarvisdesk.in" class="contact-link">
+          <div class="contact-link-icon">📧</div>
+          <div>
+            <div class="contact-link-label">Email</div>
+            <div class="contact-link-value">mittul@jarvisdesk.in</div>
+          </div>
+          <div class="contact-arrow">→</div>
+        </a>
+        <a href="https://linkedin.com/in/mittul-agarwal" target="_blank" class="contact-link">
+          <div class="contact-link-icon">💼</div>
+          <div>
+            <div class="contact-link-label">LinkedIn</div>
+            <div class="contact-link-value">linkedin.com/in/mittul-agarwal</div>
+          </div>
+          <div class="contact-arrow">→</div>
+        </a>
+        <a href="https://github.com/mittul-agarwal" target="_blank" class="contact-link">
+          <div class="contact-link-icon">🐙</div>
+          <div>
+            <div class="contact-link-label">GitHub</div>
+            <div class="contact-link-value">github.com/mittul-agarwal</div>
+          </div>
+          <div class="contact-arrow">→</div>
+        </a>
+        <a href="https://wa.me/91XXXXXXXXXX" class="contact-link">
+          <div class="contact-link-icon">💬</div>
+          <div>
+            <div class="contact-link-label">WhatsApp</div>
+            <div class="contact-link-value">Quick chat — available now</div>
+          </div>
+          <div class="contact-arrow">→</div>
+        </a>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="contact-form">
+        <div class="form-group">
+          <label class="form-label">Your name</label>
+          <input class="form-input" type="text" placeholder="Rohan Sharma"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" placeholder="rohan@company.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">What do you need?</label>
+          <textarea class="form-textarea" rows="4" placeholder="I need a sales dashboard for my retail business..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Budget range</label>
+          <select class="form-input" style="cursor:none">
+            <option value="">Select a range</option>
+            <option>Under ₹5,000</option>
+            <option>₹5,000 – ₹15,000</option>
+            <option>₹15,000 – ₹40,000</option>
+            <option>₹40,000+</option>
+          </select>
+        </div>
+        <button class="btn-primary" style="margin-top:0.5rem; border:none; width:100%; text-align:center;">
+          Send Message — Let's Build ✦
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Jarvis<span>Desk</span></div>
+  <div class="footer-note">Built by Mittul Agarwal · <strong>101% results, every time.</strong> · Alwar, Rajasthan 🇮🇳</div>
+  <div class="footer-note">© 2025 JarvisDesk</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+  document.querySelectorAll('a, button, .service-card, .project-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '20px'; cursor.style.height = '20px';
+      ring.style.width = '52px'; ring.style.height = '52px';
+      ring.style.borderColor = 'rgba(245,200,66,0.7)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '12px'; cursor.style.height = '12px';
+      ring.style.width = '36px'; ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(245,200,66,0.4)';
+    });
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
