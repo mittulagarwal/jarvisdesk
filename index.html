@@ -878,7 +878,7 @@
       <h2 class="contact-h2">Let's build<br/>something <em>great.</em></h2>
       <p class="contact-sub">Got a project? A dashboard you need? An idea you want built? Drop a message — I reply within a few hours. No gatekeeping, no lengthy intake forms.</p>
       <div class="contact-links">
-        <a href="jarvisdesk26@gmail.com" class="contact-link">
+        <a href="mailto:jarvisdesk26@gmail.com" class="contact-link">
           <div class="contact-link-icon">📧</div>
           <div>
             <div class="contact-link-label">Email</div>
@@ -913,22 +913,22 @@
       </div>
     </div>
     <div class="reveal">
-      <div class="contact-form">
+      <form action="https://formsubmit.co/jarvisdesk26@gmail.com" method="POST" class="contact-form">
         <div class="form-group">
           <label class="form-label">Your name</label>
-          <input class="form-input" type="text" placeholder="Rohan Sharma"/>
-        </div>
+          <input class="form-input" type="text" name="name" placeholder="Palak Gupta" required/>
+        </form>
         <div class="form-group">
           <label class="form-label">Email</label>
-          <input class="form-input" type="email" placeholder="rohan@company.com"/>
+          <input class="form-input" type="email" name="email" placeholder="palak@company.com" required/>
         </div>
         <div class="form-group">
           <label class="form-label">What do you need?</label>
-          <textarea class="form-textarea" rows="4" placeholder="I need a sales dashboard for my retail business..."></textarea>
+          <textarea class="form-textarea" name="message" rows="4" placeholder="I need a sales dashboard for my retail business..."></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Budget range</label>
-          <select class="form-input" style="cursor:none">
+          <select class="form-input" name="budget" style="cursor:none">
             <option value="">Select a range</option>
             <option>Under ₹5,000</option>
             <option>₹5,000 – ₹15,000</option>
@@ -936,7 +936,7 @@
             <option>₹40,000+</option>
           </select>
         </div>
-        <button class="btn-primary" style="margin-top:0.5rem; border:none; width:100%; text-align:center;">
+        <button type="submit" class="btn-primary" style="margin-top:0.5rem; border:none; width:100%; text-align:center;">
           Send Message — Let's Build ✦
         </button>
       </div>
